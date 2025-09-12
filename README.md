@@ -74,7 +74,7 @@ pip install -r requirements.txt
 python batch_process.py --data_root "path/to/your/raw_data" --output_root "path/to/your/processed_data"
 ```
 
-**示例 (根据我们之前的交流):**
+**示例:**
 ```bash
 python batch_process.py --data_root "data/部分Cu/13.13/22580002" --output_root "data/processed/部分Cu_13_13_22580002_results"
 ```
@@ -109,4 +109,5 @@ python batch_process.py --data_root "data/部分Cu/13.13/22580002" --output_root
   控制热图色标的最小值和最大值。例如，设置为 `0.0` 和 `0.5` 意味着任何低于0%的变化都显示为最暗色，任何高于50%的变化都显示为最亮色。
 
 - **`REL_CHANGE_HEATMAP_COLORMAP`**:
+
   控制热图的配色方案。您可以将其改为 `'gray'` (灰度), `'coolwarm'` (红-白-蓝), `'hot'` (黑-红-黄), `'viridis'` (科研常用色)等。
