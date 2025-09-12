@@ -1,0 +1,14 @@
+data/
+
+# 忽略我们脚本生成的临时文件夹
+temp_pipeline_input/
+
+venv/
+laser/
+
+# 忽略Python缓存文件
+__pycache__/
+*.pyc
+
+.vscode/
+.idea/

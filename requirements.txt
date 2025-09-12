@@ -1,0 +1,13 @@
+# requirements.txt
+
+# 核心图像处理与数值计算
+numpy
+opencv-python
+scikit-image
+
+# 数据处理与Excel导出
+pandas
+openpyxl
+
+# 绘图与可视化
+matplotlib
