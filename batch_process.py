@@ -12,9 +12,9 @@ import numpy as np
 import pandas as pd
 import argparse
 import subprocess
+from src.main import main as process_single_point
 
 def group_files_by_point(data_root):
-    # ... (此函数保持不变)
     pattern = re.compile(r'\[P\w\]\s+(?P<point_id>\d{4})\s+D\s+(?P<delay>-?\d+\.?\d*).*?\s+(?P<phase>[ABC]).*\.tiff')
     file_groups = collections.defaultdict(dict)
     print(f"正在扫描目录: {data_root}")
@@ -31,7 +31,6 @@ def group_files_by_point(data_root):
     return file_groups
 
 def prepare_input_data(group, temp_dir):
-    # ... (此函数保持不变)
     if temp_dir.exists(): shutil.rmtree(temp_dir)
     temp_dir.mkdir(parents=True)
     try:
@@ -65,6 +64,8 @@ def get_delay_and_prefix(group):
     return delay, filename_prefix
 
 def main(data_root, output_root):
+    results_dir = output_root
+    results_dir.mkdir(parents=True, exist_ok=True)
     file_groups = group_files_by_point(data_root)
     if not file_groups: return
 
@@ -88,36 +89,55 @@ def main(data_root, output_root):
 
         try:
             delay, filename_prefix = get_delay_and_prefix(group)
-            output_dir = output_root / f"point_{point_id}_results"
+            temp_point_output_dir = results_dir / f"temp_point_{point_id}"
             
-            cmd = [
-                'python', '-m', 'src.main',
-                '--input_dir', str(temp_input_dir),
-                '--output_dir', str(output_dir),
-                '--filename_prefix', filename_prefix,
-                '--delay', str(delay)
-            ]
+            metrics = process_single_point(
+                input_dir=temp_input_dir,
+                output_dir=temp_point_output_dir,
+                filename_prefix=filename_prefix,
+                delay_time=delay,
+                heatmap_dir=results_dir
+            )
             
-            print(f"执行命令: {' '.join(cmd)}")
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True, encoding='utf-8')
-            
-            # 从 main.py 的输出中解析结果
-            # 假设 main.py 在成功时会打印一行 "METRICS:{...}"
-            for line in result.stdout.splitlines():
-                if line.startswith("METRICS:"):
-                    metrics_str = line.replace("METRICS:", "")
-                    metrics = eval(metrics_str) # 使用eval解析字典字符串
-                    spectral_results.append(metrics)
-                    break
-            
-            processed_count += 1
-        except Exception as e:
-            print(f"错误: 加工点 {point_id} 的主流程处理失败。")
-            failed_points.append({'id': point_id, 'group': group})
-            if isinstance(e, subprocess.CalledProcessError):
-                print("--- 错误信息 ---\n" + e.stderr + "\n----------------")
+            if metrics:
+                spectral_results.append(metrics)
+                processed_count += 1
             else:
-                print(f"--- 错误信息 ---\n{e}\n----------------")
+                # 如果函数返回 None，说明处理失败
+                raise ValueError("处理函数返回None，表示自动分割失败。")
+
+        except Exception as e:
+            print(f"错误: 加工点 {point_id} 的主流程处理失败: {e}")
+            failed_points.append({'id': point_id, 'group': group})
+        #     cmd = [
+        #         'python', '-m', 'src.main',
+        #         '--input_dir', str(temp_input_dir),
+        #         '--output_dir', str(temp_point_output_dir),
+        #         '--filename_prefix', filename_prefix,
+        #         '--delay', str(delay),
+        #         '--heatmap_dir', str(results_dir)
+        #     ]
+            
+        #     print(f"执行命令: {' '.join(cmd)}")
+        #     result = subprocess.run(cmd, check=True, capture_output=True, text=True, encoding='utf-8')
+            
+        #     # 从 main.py 的输出中解析结果
+        #     # 假设 main.py 在成功时会打印一行 "METRICS:{...}"
+        #     for line in result.stdout.splitlines():
+        #         if line.startswith("METRICS:"):
+        #             metrics_str = line.replace("METRICS:", "")
+        #             metrics = eval(metrics_str) # 使用eval解析字典字符串
+        #             spectral_results.append(metrics)
+        #             break
+            
+        #     processed_count += 1
+        # except Exception as e:
+        #     print(f"错误: 加工点 {point_id} 的主流程处理失败。")
+        #     failed_points.append({'id': point_id, 'group': group})
+        #     if isinstance(e, subprocess.CalledProcessError):
+        #         print("--- 错误信息 ---\n" + e.stderr + "\n----------------")
+        #     else:
+        #         print(f"--- 错误信息 ---\n{e}\n----------------")
 
     # --- 阶段 2: 手动处理失败的点 ---
     if failed_points:
@@ -145,32 +165,50 @@ def main(data_root, output_root):
                         break
 
                     delay, filename_prefix = get_delay_and_prefix(group)
-                    output_dir = output_root / f"point_{point_id}_results"
+                    temp_point_output_dir = results_dir / f"temp_point_{point_id}"
                     
-                    cmd = [
-                        'python', '-m', 'src.main',
-                        '--input_dir', str(temp_input_dir),
-                        '--output_dir', str(output_dir),
-                        '--filename_prefix', filename_prefix,
-                        '--delay', str(delay),
-                        '--manual_center_x', str(center_x),
-                        '--manual_center_y', str(center_y)
-                    ]
+                    metrics = process_single_point(
+                        input_dir=temp_input_dir,
+                        output_dir=temp_point_output_dir,
+                        filename_prefix=filename_prefix,
+                        delay_time=delay,
+                        manual_center_x=center_x,
+                        manual_center_y=center_y,
+                        heatmap_dir=results_dir
+                    )
+
+                    if metrics:
+                        print(f"加工点 {point_id} 手动处理成功。")
+                        spectral_results.append(metrics)
+                        processed_count += 1
+                        break # 成功，跳出while循环
+                    else:
+                        print(f"错误: 加工点 {point_id} 手动处理失败，请检查坐标。")
+                    # cmd = [
+                    #     'python', '-m', 'src.main',
+                    #     '--input_dir', str(temp_input_dir),
+                    #     '--output_dir', str(temp_point_output_dir),
+                    #     '--filename_prefix', filename_prefix,
+                    #     '--delay', str(delay),
+                    #     '--manual_center_x', str(center_x),
+                    #     '--manual_center_y', str(center_y),
+                    #     '--heatmap_dir', str(results_dir)
+                    # ]
                     
-                    result = subprocess.run(cmd, check=True, capture_output=True, text=True, encoding='utf-8')
+                    # result = subprocess.run(cmd, check=True, capture_output=True, text=True, encoding='utf-8')
                     
-                    print(f"加工点 {point_id} 手动处理成功。")
+                    # print(f"加工点 {point_id} 手动处理成功。")
                     
-                    # FIXED: 添加手动处理成功后的结果收集
-                    for line in result.stdout.splitlines():
-                        if line.startswith("METRICS:"):
-                            metrics_str = line.replace("METRICS:", "")
-                            metrics = eval(metrics_str)
-                            spectral_results.append(metrics)
-                            break
+                    # # FIXED: 添加手动处理成功后的结果收集
+                    # for line in result.stdout.splitlines():
+                    #     if line.startswith("METRICS:"):
+                    #         metrics_str = line.replace("METRICS:", "")
+                    #         metrics = eval(metrics_str)
+                    #         spectral_results.append(metrics)
+                    #         break
                     
-                    processed_count += 1
-                    break 
+                    # processed_count += 1
+                    # break 
 
                 except ValueError:
                     print("输入格式错误，请输入两个由逗号分隔的数字 (例如: 512, 512)。请重试。")
@@ -191,17 +229,17 @@ def main(data_root, output_root):
         # 删除用于排序的辅助列
         df = df.drop(columns=['abs_delay_for_sort'])
         
-        excel_filepath = output_root / "spectral_data.xlsx"
+        excel_filepath = results_dir / "spectral_data.xlsx"
         try:
             df.to_excel(excel_filepath, index=False, engine='openpyxl')
             print(f"Excel文件已成功保存到: {excel_filepath}")
         except Exception as e:
             print(f"错误: 保存Excel文件失败: {e}")
     # ---------------------------------------------
-
-    if temp_input_dir.exists():
-        shutil.rmtree(temp_input_dir)
     
+    for item in results_dir.iterdir():
+        if item.is_dir() and item.name.startswith("temp_point_"):
+            shutil.rmtree(item)
     print(f"\n批处理完成！共成功处理 {processed_count} / {len(file_groups)} 个加工点。")
     print(f"所有结果保存在: {output_root}")
 

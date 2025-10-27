@@ -6,7 +6,7 @@ from . import config # 导入config以获取边距
 
 def segment_roi(img_background, img_final, blur_kernel, open_kernel_size, close_kernel_size):
     """
-    通过计算P1和P3的差异，使用Otsu阈值分割，并生成一个轴对齐的椭圆ROI。
+    通过计算P1和P3的差异, 使用Otsu阈值分割, 并生成一个轴对齐的椭圆ROI。
     此版本动态计算裁剪尺寸。
     """
     diff_image = cv2.absdiff(img_background, img_final)
@@ -33,6 +33,7 @@ def segment_roi(img_background, img_final, blur_kernel, open_kernel_size, close_
 
         if ellipse_area > 0:
             area_ratio = contour_area / ellipse_area
+            print(f"置信度: {area_ratio:.2f}")
             # 检查面积比率是否在config文件中定义的范围内
             if not (config.ELLIPSE_FIT_MIN_RATIO < area_ratio < config.ELLIPSE_FIT_MAX_RATIO):
                 print(f"[跳过] ROI椭圆拟合置信度低。面积比率: {area_ratio:.2f} (可接受范围: {config.ELLIPSE_FIT_MIN_RATIO}-{config.ELLIPSE_FIT_MAX_RATIO})")
