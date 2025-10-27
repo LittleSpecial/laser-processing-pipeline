@@ -1,38 +1,46 @@
-# src/config.py
-
 from pathlib import Path
 
-# --- 路径配置 ---
+# --- Paths ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 RAW_DATA_DIR = BASE_DIR / "data" / "raw"
 PROCESSED_DATA_DIR = BASE_DIR / "data" / "processed"
-
 HEATMAP_OUTPUT_DIR = PROCESSED_DATA_DIR / "all_relative_change_heatmaps"
-# --- 图像配准 (ORB) 参数 ---
+
+# --- Image alignment (ORB) ---
 ORB_N_FEATURES = 5000
 ORB_MATCH_RATIO = 0.75
 
-# --- ROI分割参数 ---
+# --- ROI segmentation ---
 SEGMENTATION_BLUR_KERNEL = (21, 21)
 MORPH_OPEN_KERNEL_SIZE = (3, 3)
 MORPH_CLOSE_KERNEL_SIZE = (7, 7)
-# NEW: 裁剪时在椭圆外接矩形的基础上增加的边距（像素）
-CROP_PADDING_PIXELS = 100 # 您可以调整这个值来控制裁剪区域的大小
-
+SEGMENTATION_USE_CLAHE = True
+CLAHE_CLIP_LIMIT = 2.0
+CLAHE_TILE_GRID_SIZE = (8, 8)
+REFINE_CENTER_ENABLED = False
+REFINE_CENTER_MAX_SHIFT_PIXELS = 40
+REFINE_CENTER_MIN_INTENSITY = 500.0
+REFINE_CENTER_MAX_INTENSITY = 6000.0
+DIFF_THRESHOLD_PERCENTILE = 99.5
+DIFF_THRESHOLD_MIN_VALUE = 5.0
+SEGMENTATION_MAX_AREA_RATIO = 0.15
 ELLIPSE_FIT_MIN_RATIO = 0.2
 ELLIPSE_FIT_MAX_RATIO = 1.8
-
 UNIFIED_CROP_SIZE = (200, 160)
+WEAK_SIGNAL_BACKGROUND_PERCENTILE = 80.0
+WEAK_SIGNAL_MIN_TOTAL_INTENSITY = 1000.0
+WEAK_SIGNAL_STD_SCALE = 2.5
+WEAK_SIGNAL_MIN_AXIS = 20
 
-# --- 数据分析参数 ---
+# --- Data analysis ---
 LOG_EPSILON = 1e-9
-LOG_RATIO_HEATMAP_COLORMAP = 'inferno'
+LOG_RATIO_HEATMAP_COLORMAP = "inferno"
 
-# --- (P2-P1)/P1 相对变化率热图的参数 ---
+# --- (P2-P1)/P1 relative change heatmap ---
 REL_CHANGE_P1_THRESHOLD = 10
-REL_CHANGE_HEATMAP_COLORMAP = 'gray' 
+REL_CHANGE_HEATMAP_COLORMAP = "BuPu_r"
 REL_CHANGE_VMIN = -1.0
 REL_CHANGE_VMAX = 0.6
 
-# --- 谱线图参数 ---
+# --- Spectral plots ---
 SPECTRAL_PLOT_INVERT_X_AXIS = True

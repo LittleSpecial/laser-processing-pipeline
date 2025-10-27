@@ -55,16 +55,16 @@ def main(input_dir, output_dir, filename_prefix=None, delay_time=None, manual_ce
         target_crop_size = config.UNIFIED_CROP_SIZE
         roi_mask_original_size = np.ones_like(img_p3, dtype=np.uint8) * 255
     else:
-        print("--- 自动模式 ---")
-        print("步骤 2/5: 正在进行图像配准...")
+        # print("--- 自动模式 ---")
+        # print("步骤 2/5: 正在进行图像配准...")
         p1_aligned, _ = align_images(img_p3, img_p1, config.ORB_N_FEATURES, config.ORB_MATCH_RATIO)
         p2_aligned, _ = align_images(img_p3, img_p2, config.ORB_N_FEATURES, config.ORB_MATCH_RATIO)
         if p1_aligned is None or p2_aligned is None:
             print("错误: 图像配准失败。")
             return None # 配准失败，通知batch_process
-        print("图像配准完成。")
+        # print("图像配准完成。")
 
-        print("步骤 3/5: 正在分割ROI...")
+        # print("步骤 3/5: 正在分割ROI...")
         roi_mask_original_size, center_coords, target_crop_size = segment_roi(
             p1_aligned, 
             img_p3, 
@@ -76,8 +76,8 @@ def main(input_dir, output_dir, filename_prefix=None, delay_time=None, manual_ce
             print("错误: 自动ROI分割失败。")
             return None
     # save_image_safely(output_dir / f"{base_name}roi_mask_elliptical.png", roi_mask_original_size)
-    print("ROI分割完成。")
-    print("步骤 4/5: 正在裁剪、居中并缩放ROI...")
+    # print("ROI分割完成。")
+    # print("步骤 4/5: 正在裁剪、居中并缩放ROI...")
     images_to_center_crop = [p1_aligned, p2_aligned, img_p3]
     
     # CHANGED: 传递新的参数来裁剪和缩放
@@ -93,8 +93,8 @@ def main(input_dir, output_dir, filename_prefix=None, delay_time=None, manual_ce
     # save_image_safely(output_dir / f"{base_name}P2_roi_centered.png", p2_roi)
     # save_image_safely(output_dir / f"{base_name}P3_roi_centered.png", p3_roi)
     # save_image_safely(output_dir / f"{base_name}roi_mask_centered.png", cropped_centered_mask)
-    print("ROI裁剪和居中完成。")
-    print("步骤 5/5: 正在进行量化分析...")
+    # print("ROI裁剪和居中完成。")
+    # print("步骤 5/5: 正在进行量化分析...")
     
     # CHANGED: 调用简单的热图函数 (不再需要background_image)
     _, log_ratio_heatmap_img = calculate_log_ratio_heatmap(
