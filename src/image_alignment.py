@@ -39,7 +39,7 @@ def align_images(img_ref, img_to_align, n_features, match_ratio):
     
     print(f"找到 {len(good_matches)} 个优质匹配点。")
 
-    if len(good_matches) > 10: # 至少需要4个点，这里设为10更稳健
+    if len(good_matches) > 10: 
         # 5. 计算单应性变换矩阵
         src_pts = np.float32([keypoints_align[m.queryIdx].pt for m in good_matches]).reshape(-1, 1, 2)
         dst_pts = np.float32([keypoints_ref[m.trainIdx].pt for m in good_matches]).reshape(-1, 1, 2)
