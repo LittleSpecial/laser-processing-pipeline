@@ -17,7 +17,7 @@ from src.main import main as process_single_point
 def group_files_by_point(data_root):
     pattern = re.compile(r'\[P\w\]\s+(?P<point_id>\d{4})\s+D\s+(?P<delay>-?\d+\.?\d*).*?\s+(?P<phase>[ABC]).*\.tiff')
     file_groups = collections.defaultdict(dict)
-    print(f"正在扫描目录: {data_root}")
+    # print(f"正在扫描目录: {data_root}")
     for root, _, files in os.walk(data_root):
         for filename in files:
             match = pattern.search(filename)
@@ -77,7 +77,7 @@ def main(data_root, output_root):
 
     failed_points = []
     # --- 阶段 1: 自动处理 ---
-    print("\n--- 开始阶段 1: 自动处理所有加工点 ---")
+    # print("\n--- 开始阶段 1: 自动处理所有加工点 ---")
     total_points = len(file_groups)
     for i, (point_id, group) in enumerate(sorted(file_groups.items())):
         print(f"\n--- [ {i + 1} / {total_points} ] 正在自动处理加工点: {point_id} ---")
@@ -222,7 +222,7 @@ def main(data_root, output_root):
 
     # --- CHANGED: 所有点处理完毕后，保存为Excel文件 ---
     if spectral_results:
-        print("\n--- 所有加工点处理完毕，开始生成Excel数据文件 ---")
+        # print("\n--- 所有加工点处理完毕，开始生成Excel数据文件 ---")
         df = pd.DataFrame(spectral_results)
         # 优化: 按照延时的绝对值从小到大排序
         df = df.sort_values(by='abs_delay_for_sort')
